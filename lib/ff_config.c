@@ -695,6 +695,15 @@ ini_parse_handler(void* user, const char* section, const char* name,
         pconfig->dpdk.pkt_tx_delay = atoi(value);
     } else if (MATCH("dpdk", "symmetric_rss")) {
         pconfig->dpdk.symmetric_rss = atoi(value);
+    } else if (MATCH("dpdk", "extra_args")) {
+        char* str = strdup(value); // call strdup because strtok_r wants non-const pointer
+        char* rest = NULL;
+
+        for (char* token = strtok_r(str, " ", &rest); token != NULL; token = strtok_r(NULL, " ", &rest)) {
+            pconfig->dpdk.extra_argv[pconfig->dpdk.extra_argc++] = strdup(token);
+        }
+
+        free(str);
     } else if (MATCH("kni", "enable")) {
         pconfig->kni.enable= atoi(value);
     } else if (MATCH("kni", "kni_action")) {
@@ -786,7 +795,10 @@ dpdk_args_setup(struct ff_config *cfg)
             sprintf(temp, "--allow=%s", token);
             dpdk_argv[n++] = strdup(temp);
         }
+    }
 
+    for (i=0; i < cfg->dpdk.extra_argc; i++) {
+        dpdk_argv[n++] = cfg->dpdk.extra_argv[i];
     }
 
     if (cfg->dpdk.nb_vdev) {
@@ -1026,6 +1038,7 @@ ff_default_config(struct ff_config *cfg)
     cfg->dpdk.numa_on = 1;
     cfg->dpdk.promiscuous = 1;
     cfg->dpdk.pkt_tx_delay = BURST_TX_DRAIN_US;
+    cfg->dpdk.extra_argc = 0;
 
     cfg->freebsd.hz = 100;
     cfg->freebsd.physmem = 1048576*256;
