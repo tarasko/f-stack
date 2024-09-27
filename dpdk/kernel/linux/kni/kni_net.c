@@ -18,6 +18,7 @@
 #include <linux/kthread.h>
 #include <linux/delay.h>
 #include <linux/rtnetlink.h>
+#include <linux/string.h>
 
 #include <rte_kni_common.h>
 #include <kni_fifo.h>
@@ -832,8 +833,8 @@ static const struct net_device_ops kni_net_netdev_ops = {
 static void kni_get_drvinfo(struct net_device *dev,
 			    struct ethtool_drvinfo *info)
 {
-	strlcpy(info->version, KNI_VERSION, sizeof(info->version));
-	strlcpy(info->driver, "kni", sizeof(info->driver));
+	strncpy(info->version, KNI_VERSION, sizeof(info->version));
+	strncpy(info->driver, "kni", sizeof(info->driver));
 }
 
 static const struct ethtool_ops kni_net_ethtool_ops = {
